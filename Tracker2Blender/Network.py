@@ -1,9 +1,8 @@
 import socket, struct, math
-from mathutils import Vector
+from mathutils import Vector, Euler
 
 sock = None
-
-frame_num = 0
+frame_num = -1
 vicon_state = {}
 
 def ParsePacket(d):
@@ -25,7 +24,7 @@ def ParsePacket(d):
             item_name, tx, ty, tz, rx, ry, rz = struct.unpack('!24s6d', d[a:a+item_sz])
             a += item_sz
             assert all(math.isfinite(f) and -1e6 < f < 1e6 for f in (tx, ty, tz, rx, ry, rz))
-            vicon_state[item_name] = (Vector(tx, ty, tz), Vector(rx, ry, rz))
+            vicon_state[item_name] = (Vector(tx, ty, tz), Euler((rx, ry, rz), order='XYZ'))
             rec_items.append(item_name)
         assert a == len(d)
         dotdotdot = False
@@ -39,6 +38,8 @@ def ParsePacket(d):
 
 def ReceiveUpdate():
     global sock
+    if sock is None:
+        return
     while True:
         try:
             d = sock.recvfrom(1024)
@@ -48,19 +49,34 @@ def ReceiveUpdate():
 
 def NetConnect(port):
     global sock
-    if sock is None:
-        print('Binding to port {}'.format(port))
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.setblocking(False)
-        sock.bind(('', port))
-    else:
-        print('Closing socket')
-        sock.close()
-        del sock
-        sock = None
+    assert sock is None
+    print('Binding to port {}'.format(port))
+    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    sock.setblocking(False)
+    sock.bind(('', port))
+    
+def NetDisconnect():
+    global sock, frame_num, vicon_state
+    assert sock is not None
+    print('Closing socket')
+    sock.close()
+    del sock
+    sock = None
+    vicon_state = {}
+    frame_num = -1
     
 def NetIsConnected():
     return sock is not None
 
 def NetStatusMsg():
-    return 'TODO'
+    if sock is None:
+        return 'Not connected'
+    return 'Frame {}, {} objs'.format(frame_num, len(vicon_state))
+
+def Network_register():
+    pass
+    
+def Network_unregister():
+    if sock is not None:
+        sock.close()
+        del sock

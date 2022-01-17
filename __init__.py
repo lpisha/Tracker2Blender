@@ -11,11 +11,17 @@ bl_info = {
 
 import bpy
 from .Tracker2Blender.Panel import Panel_register, Panel_unregister
+from .Tracker2Blender.Network import Network_register, Network_unregister
+from .Tracker2Blender.Anim import Anim_register, Anim_unregister
 
 def register():
     Panel_register()
+    Network_register()
+    Anim_register()
 
 def unregister():
+    Anim_unregister()
+    Network_unregister()
     Panel_unregister()
 
 if __name__ == '__main__':
