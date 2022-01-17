@@ -22,9 +22,10 @@ def ParsePacket(d):
             assert item_sz == 72
             assert a + item_sz <= len(d)
             item_name, tx, ty, tz, rx, ry, rz = struct.unpack('!24s6d', d[a:a+item_sz])
+            item_name = item_name.decode('ascii').rstrip('\x00')
             a += item_sz
             assert all(math.isfinite(f) and -1e6 < f < 1e6 for f in (tx, ty, tz, rx, ry, rz))
-            vicon_state[item_name] = (Vector(tx, ty, tz), Euler((rx, ry, rz), order='XYZ'))
+            vicon_state[item_name] = (Vector((tx, ty, tz)), Euler((rx, ry, rz), 'XYZ'))
             rec_items.append(item_name)
         assert a == len(d)
         dotdotdot = False
@@ -34,7 +35,8 @@ def ParsePacket(d):
         print('Vicon UDP pkt frame {:012d} items {}'.format(frame_num,
             ''.join(rec_items) + ('...' if dotdotdot else '')))
     except AssertionError as e:
-        print(e)
+        print('Invalid packet received: ' + d.hex())
+        raise
 
 def ReceiveUpdate():
     global sock
@@ -43,7 +45,8 @@ def ReceiveUpdate():
     while True:
         try:
             d = sock.recvfrom(1024)
-            ParsePacket(d)
+            #print('Received packet from ' + str(d[1]))
+            ParsePacket(d[0])
         except BlockingIOError:
             return
 
@@ -62,7 +65,7 @@ def NetDisconnect():
     sock.close()
     del sock
     sock = None
-    vicon_state = {}
+    vicon_state.clear()
     frame_num = -1
     
 def NetIsConnected():
@@ -77,6 +80,7 @@ def Network_register():
     pass
     
 def Network_unregister():
+    global sock
     if sock is not None:
         sock.close()
         del sock

@@ -79,7 +79,7 @@ class T2B_PT_main_panel(bpy.types.Panel):
         r = self.layout.row().column()
         r.scale_y = 0.6
         r.label(text=NetStatusMsg())
-        r.label(text='(Mouse over to update status)')
+        r.label(text='(Mouse over btns to update status)')
         self.layout.row().prop(t2b, 'origin')
         r = self.layout.row(align = True)
         r.prop(t2b, 'scale')
