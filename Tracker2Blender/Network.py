@@ -32,8 +32,8 @@ def ParsePacket(d):
         if len(rec_items) > 3:
             rec_items = rec_items[0:3]
             dotdotdot = True
-        print('Vicon UDP pkt frame {:012d} items {}'.format(frame_num,
-            ''.join(rec_items) + ('...' if dotdotdot else '')))
+        # print('Vicon UDP pkt frame {:012d} items {}'.format(frame_num,
+        #     ''.join(rec_items) + ('...' if dotdotdot else '')))
     except AssertionError as e:
         print('Invalid packet received: ' + d.hex())
         raise

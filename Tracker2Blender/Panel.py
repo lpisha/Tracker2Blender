@@ -2,7 +2,7 @@ import bpy
 from bpy.props import BoolProperty, IntProperty, FloatProperty, FloatVectorProperty, \
     CollectionProperty, PointerProperty
 from .Network import NetConnect, NetDisconnect, NetIsConnected, NetStatusMsg
-from .Anim import recording
+from .Anim import SetRecording
 
 class T2B_OT_record(bpy.types.Operator):
     bl_idname = 't2b.record'
@@ -10,7 +10,7 @@ class T2B_OT_record(bpy.types.Operator):
     
     def execute(self, context):
         NetConnect(context.scene.t2b.port)
-        recording = True
+        SetRecording(True)
         bpy.ops.screen.animation_play(reverse = False, sync = True)
         return {'FINISHED'}
 
@@ -20,7 +20,7 @@ class T2B_OT_preview(bpy.types.Operator):
     
     def execute(self, context):
         NetConnect(context.scene.t2b.port)
-        recording = False
+        SetRecording(False)
         bpy.ops.screen.animation_play(reverse = False, sync = True)
         return {'FINISHED'}
 
@@ -80,6 +80,7 @@ class T2B_PT_main_panel(bpy.types.Panel):
         r.scale_y = 0.6
         r.label(text=NetStatusMsg())
         r.label(text='(Mouse over btns to update status)')
+        self.layout.row().prop(t2b, 'extend')
         self.layout.row().prop(t2b, 'origin')
         r = self.layout.row(align = True)
         r.prop(t2b, 'scale')
@@ -105,6 +106,9 @@ class TargetObject(bpy.types.PropertyGroup):
 class TrackerSettings(bpy.types.PropertyGroup):
     port : IntProperty(name = 'Port', description = 'UDP port to listen on for Tracker data',
         min = 0, max = 65535, default = 12345)
+    extend : BoolProperty(name = 'Extend time while recording',
+        description = 'Keep pushing forward the scene end time while recording, so action continues indefinitely without looping',
+        default = True)
     scale : FloatProperty(name = 'Scale', description = 'Scale factor to multiply Tracker data by',
         min = 1e-8, soft_min = 0.01, soft_max = 100.0, default = 1.0)
     origin : FloatVectorProperty(name = 'Origin', description = 'Position of Vicon origin in Blender coords',
