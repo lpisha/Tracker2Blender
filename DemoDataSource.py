@@ -29,10 +29,10 @@ def SendUpdate():
     oi = 0
     for pktidx in range(npackets):
         objsinthispacket = min(objsperpacket, len(objects) - oi)
-        pkt = struct.pack('!IB', frame_num, objsinthispacket)
+        pkt = struct.pack('<IB', frame_num, objsinthispacket)
         for oip in range(objsinthispacket):
             o = objects[oi]
-            pkt += struct.pack('!BH24s6d', 0, 72, o['name'].encode('ascii', 'ignore'),
+            pkt += struct.pack('<BH24s6d', 0, 72, o['name'].encode('ascii', 'ignore'),
                 o['tx'], o['ty'], o['tz'], o['rx'], o['ry'], o['rz'])
             oi += 1
         assert len(pkt) == objsinthispacket * 75 + 5
@@ -42,22 +42,27 @@ def SendUpdate():
     frame_num += 1
 
 for o in objects:
-    for f in ['tx', 'ty']:
-        o[f] = random.uniform(-5.0, 5.0)
+    o['tx'] = random.uniform(-1.0, -0.5)
+    o['ty'] = random.uniform(-0.2, 0.2)
     o['tz'] = random.uniform(0.0, 2.0)
-    for f in ['vx', 'vy', 'vz', 'srx', 'sry', 'srz']:
-        o[f] = random.uniform(-0.01, 0.01)
-    for f in ['rx', 'ry', 'rz']:
-        o[f] = random.uniform(0.0, 2.0 * math.pi)
+    for f in ['vx', 'vy', 'vz']:
+        o[f] = 0.0 #random.uniform(-0.01, 0.01)
+    o['rx'], o['ry'], o['rz'] = 0.0, 0.0, 0.0
+    for f in ['srx', 'sry', 'srz']:
+        o[f] = 0.0 #random.uniform(0.0, 2.0 * math.pi)
+    o['srz'] = 0.01
 
 def MoveObj(o):
     for t, v in zip(['tx', 'ty', 'tz', 'rx', 'ry', 'rz'], ['vx', 'vy', 'vz', 'srx', 'sry', 'srz']):
         o[t] += o[v]
+    o['tx'] += 0.6
     for t, v in zip(['tx', 'ty', 'tz'], ['vx', 'vy', 'vz']):
-        if o[t] >= 2.0:
+        if o[t] >= 0.2:
             o[v] -= 0.001
-        if o[t] <= (0.3 if t == 'tz' else -2.0):
+        if o[t] <= (0.8 if t == 'tz' else -0.2):
             o[v] += 0.001
+    o['tx'] -= 0.6
+    o['tz'] = 1.0
     for r in ['rx', 'ry', 'rz']:
         if o[r] >= 2.0 * math.pi:
             o[r] -= 2.0 * math.pi

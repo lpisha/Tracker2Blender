@@ -26,7 +26,7 @@ def ParsePacket(d):
             a += item_sz
             assert all(math.isfinite(f) and -1e6 < f < 1e6 for f in (tx, ty, tz, rx, ry, rz))
             vicon_state[item_name] = (Vector((tx, ty, tz)), Euler((rx, ry, rz), 'XYZ'))
-            print('{} translation {} {} {}'.format(item_name, tx, ty, tz))
+            #print('{} translation {} {} {}'.format(item_name, tx, ty, tz))
             rec_items.append(item_name)
         while a < len(d):
             assert d[a] == 0
