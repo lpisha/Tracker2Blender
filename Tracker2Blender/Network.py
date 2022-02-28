@@ -10,30 +10,33 @@ def ParsePacket(d):
     try:
         assert len(d) <= 1024
         assert len(d) >= 5
-        frame_num, items = struct.unpack('!IB', d[0:5])
+        frame_num, items = struct.unpack('<IB', d[0:5])
         assert items >= 1 and items <= 50
         a = 5
         rec_items = []
         for i in range(items):
             assert len(d) >= a+3
-            item_id, item_sz = struct.unpack('!BH', d[a:a+3])
+            item_id, item_sz = struct.unpack('<BH', d[a:a+3])
             a += 3
             assert item_id == 0
             assert item_sz == 72
             assert a + item_sz <= len(d)
-            item_name, tx, ty, tz, rx, ry, rz = struct.unpack('!24s6d', d[a:a+item_sz])
+            item_name, tx, ty, tz, rx, ry, rz = struct.unpack('<24s6d', d[a:a+item_sz])
             item_name = item_name.decode('ascii').rstrip('\x00')
             a += item_sz
             assert all(math.isfinite(f) and -1e6 < f < 1e6 for f in (tx, ty, tz, rx, ry, rz))
             vicon_state[item_name] = (Vector((tx, ty, tz)), Euler((rx, ry, rz), 'XYZ'))
+            print('{} translation {} {} {}'.format(item_name, tx, ty, tz))
             rec_items.append(item_name)
-        assert a == len(d)
+        while a < len(d):
+            assert d[a] == 0
+            a += 1
         dotdotdot = False
         if len(rec_items) > 3:
             rec_items = rec_items[0:3]
             dotdotdot = True
-        # print('Vicon UDP pkt frame {:012d} items {}'.format(frame_num,
-        #     ''.join(rec_items) + ('...' if dotdotdot else '')))
+        #print('Vicon UDP pkt frame {:012d} items {}'.format(frame_num,
+        #    ''.join(rec_items) + ('...' if dotdotdot else '')))
     except AssertionError as e:
         print('Invalid packet received: ' + d.hex())
         raise
