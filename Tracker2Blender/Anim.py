@@ -12,6 +12,9 @@ def SetRecording(r):
 def TransformViconState(t2b, vo):
     t = vo[0]
     r = vo[1]
+    r = Euler((r.x, r.y, r.z), 'ZYX')
+    r = r.to_quaternion()
+    r = r.to_euler('XYZ')
     zrot = math.radians(t2b.zrot)
     # Fix translation
     t *= t2b.scale
