@@ -10,20 +10,22 @@ def SetRecording(r):
     recording = r
 
 def TransformViconState(t2b, vo):
-    t = vo[0]
-    r = vo[1]
-    r = Euler((r.x, r.y, r.z), 'ZYX')
-    r = r.to_quaternion()
-    r = r.to_euler('XYZ')
     zrot = math.radians(t2b.zrot)
+    zroteuler = Euler((0.0, 0.0, zrot), 'XYZ')
     # Fix translation
+    t = vo[0]
     t *= t2b.scale
-    t.rotate(Euler((0.0, 0.0, zrot), 'XYZ'))
+    t.rotate(zroteuler)
     o = list(t2b.origin)
     t.x += o[0]
     t.y += o[1]
     # Fix rotation
-    r.rotate_axis('Z', zrot)
+    r = vo[1]
+    r = Euler((r.x, r.y, r.z), 'ZYX')
+    r = r.to_quaternion()
+    if t2b.rotmode == 'XYZ':
+        r = r.to_euler('XYZ')
+    r.rotate(zroteuler)
     return t, r
 
 def CheckApplyViconState(o, bone, name, t2b, f):
@@ -43,11 +45,12 @@ def CheckApplyViconState(o, bone, name, t2b, f):
         r.rotate(world_to_local)
     # Apply
     o.location = t
-    o.rotation_mode = 'XYZ'
-    o.rotation_euler = r
+    o.rotation_mode = t2b.rotmode
+    attr = 'rotation_euler' if t2b.rotmode == 'XYZ' else 'rotation_quaternion'
+    setattr(o, attr, r)
     if recording:
         o.keyframe_insert(data_path='location', frame=f)
-        o.keyframe_insert(data_path='rotation_euler', frame=f)
+        o.keyframe_insert(data_path=attr, frame=f)
 
 @persistent
 def T2BFrameHandler(scene):

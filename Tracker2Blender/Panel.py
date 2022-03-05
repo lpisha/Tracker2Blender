@@ -1,6 +1,6 @@
 import bpy
 from bpy.props import BoolProperty, IntProperty, FloatProperty, FloatVectorProperty, \
-    CollectionProperty, PointerProperty
+    CollectionProperty, PointerProperty, EnumProperty
 from .Network import NetConnect, NetDisconnect, NetIsConnected, NetStatusMsg
 from .Anim import SetRecording
 
@@ -85,6 +85,7 @@ class T2B_PT_main_panel(bpy.types.Panel):
         r = self.layout.row(align = True)
         r.prop(t2b, 'scale')
         r.prop(t2b, 'zrot')
+        self.layout.row().prop(t2b, 'rotmode')
         b = self.layout.box().column()
         r = b.row()
         r.label(text='Tracking targets:')
@@ -103,6 +104,11 @@ class TargetObject(bpy.types.PropertyGroup):
         + 'If an armature, bones follow Tracker objects named ObjName_BoneName. '
         + 'Otherwise, object follows Tracker object named ObjName.')
 
+RotModes = [
+    ('QUATERNION', 'Quaternion', 'Quaternion'),
+    ('XYZ', 'Euler XYZ', 'Euler XYZ')
+]
+
 class TrackerSettings(bpy.types.PropertyGroup):
     port : IntProperty(name = 'Port', description = 'UDP port to listen on for Tracker data',
         min = 0, max = 65535, default = 12345)
@@ -117,6 +123,8 @@ class TrackerSettings(bpy.types.PropertyGroup):
         min = 0.0, max = 360.0, default = 0.0)
     objs : CollectionProperty(type = TargetObject, name = 'Tracked Objects',
         description = 'List of armatures or general objects to track')
+    rotmode : EnumProperty(name = 'Rotations', items = RotModes, default = 'QUATERNION',
+        description = 'Force Pose Bones to use this rotation mode')
 
 classes = [
     TargetObject,

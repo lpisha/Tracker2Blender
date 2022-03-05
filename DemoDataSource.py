@@ -46,11 +46,11 @@ for o in objects:
     o['ty'] = random.uniform(-0.2, 0.2)
     o['tz'] = random.uniform(0.0, 2.0)
     for f in ['vx', 'vy', 'vz']:
-        o[f] = 0.0 #random.uniform(-0.01, 0.01)
-    o['rx'], o['ry'], o['rz'] = 0.0, 0.0, 0.0
+        o[f] = random.uniform(-0.01, 0.01)
+    for f in ['rx', 'ry', 'rz']:
+        o[f] = random.uniform(0.0, 2.0 * math.pi)
     for f in ['srx', 'sry', 'srz']:
-        o[f] = 0.0 #random.uniform(0.0, 2.0 * math.pi)
-    o['srz'] = 0.01
+        o[f] = random.uniform(-0.01, 0.01)
 
 def MoveObj(o):
     for t, v in zip(['tx', 'ty', 'tz', 'rx', 'ry', 'rz'], ['vx', 'vy', 'vz', 'srx', 'sry', 'srz']):
